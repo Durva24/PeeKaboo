@@ -4,161 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PeeKaboo</title>
-  <style>
-    @font-face {
-      font-family: 'VT323';
-      src: url('https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2') format('woff2');
-    }
-    
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    
-    html, body {
-      height: 100%;
-      overflow: hidden;
-    }
-    
-    body {
-      font-family: 'VT323', 'Courier New', monospace;
-      background-color: #000;
-      background-image: url('BG.png');  
-      background-size: cover;  
-      background-position: center;  
-      background-repeat: no-repeat;  
-      color: #FF8C00;
-      display: flex;
-      flex-direction: column;
-      padding: 20px;
-      line-height: 1.6;
-    }
-    
-
-    .container {
-      position: relative; /* Ensures content is positioned relative to the overlay */
-      z-index: 1; /* Places the content above the overlay */
-      background-color: rgba(0, 0, 0, 0.8); /* Dark background with 80% opacity */
-      border: 1px solid #FF8C00; /* Keeps the border with the orange color */
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 0 10px rgba(255, 140, 0, 0.3); /* Keeps the box shadow */
-      max-width: 1000px;
-      width: 100%;
-      margin: 0 auto;
-    }
-    
-    h1 {
-      text-align: center;
-      color: #FF8C00;
-      font-size: 2.5em;
-      margin-bottom: 20px;
-      text-shadow: 2px 2px 4px rgba(255, 140, 0, 0.5);
-    }
-    
-    #searchForm {
-      display: flex;
-      margin-bottom: 15px;
-    }
-    
-    input, button, select {
-      background-color: #000;
-      color: #FF8C00;
-      border: 1px solid #FF8C00;
-      font-family: inherit;
-      font-size: 1em;
-      padding: 10px;
-    }
-    
-    input {
-      flex: 1;
-      margin-right: 10px;
-      border-radius: 5px 0 0 5px;
-    }
-    
-    select {
-      margin-right: 10px;
-    }
-    
-    button {
-      border-radius: 0 5px 5px 0;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    
-    input:focus, button:focus, select:focus {
-      outline: none;
-      box-shadow: 0 0 5px rgba(255, 140, 0, 0.5);
-    }
-    
-    button:hover {
-      background-color: #FF8C00;
-      color: #000;
-    }
-    
-    #suggestions {
-      margin-bottom: 15px;
-    }
-    
-    .question {
-      display: inline-block;
-      margin: 5px;
-      padding: 3px 8px;
-      background-color: #1A1A1A;
-      color: #FF8C00;
-      border: 1px solid #FF8C00;
-      border-radius: 12px;
-      cursor: pointer;
-      font-size: 0.9em;
-      transition: all 0.3s ease;
-    }
-    
-    .question:hover {
-      background-color: #FF8C00;
-      color: #000;
-    }
-    
-    #results {
-      flex: 1;
-      background-color: #0A0A0A;
-      border: 1px solid #FF8C00;
-      border-radius: 5px;
-      padding: 15px;
-      overflow-y: auto;
-      font-size: 0.9em;
-      white-space: pre-wrap;
-    }
-    
-    #metadata {
-      margin-top: 15px;
-      font-size: 0.8em;
-      color: #666;
-    }
-    
-    footer {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 0.8em;
-      color: #666;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css"> <!-- Link to the external CSS file -->
 </head>
 <body>
   <div class="container">
     <h1>PeeKaboo</h1>
     <form id="searchForm">
-      <input type="text" id="searchInput" name="q" placeholder="Enter your query...">
-      <select id="modelSelect" name="model">
-        <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-        <option value="gpt-4">GPT-4</option>
-        <option value="mixtral-8x7b">Mixtral 8x7B</option>
-        <option value="llama2-70b">LLaMA2 70B</option>
-      </select>
+      <input type="text" id="searchInput" name="q" placeholder="Enter your query..." required>
       <button type="submit">EXECUTE</button>
     </form>
     <div id="suggestions"></div>
     <div id="results"></div>
+    <div id="summary"></div> <!-- Summary div for clear separation -->
     <div id="metadata"></div>
     <footer>
       &copy; 2024 PeeKaboo | Powered by Illuminati
@@ -169,47 +26,49 @@
     document.getElementById('searchForm').addEventListener('submit', function(e) {
       e.preventDefault();
       const query = document.getElementById('searchInput').value;
-      const model = document.getElementById('modelSelect').value;
       const results = document.getElementById('results');
+      const summary = document.getElementById('summary');
       const metadata = document.getElementById('metadata');
 
-      results.textContent = 'Processing query...';
+      results.innerHTML = 'Processing query...';
+      summary.textContent = '';
       metadata.textContent = '';
 
-      fetch(`search.php?q=${encodeURIComponent(query)}&model=${encodeURIComponent(model)}`)
-        .then(response => {
-          const reader = response.body.getReader();
-          let decoder = new TextDecoder();
-          let buffer = '';
-
-          function readStream() {
-            return reader.read().then(({done, value}) => {
-              if (done) {
-                return;
-              }
-              buffer += decoder.decode(value, {stream: true});
-              const parts = buffer.split('====');
-              if (parts.length >= 5) {
-                const answer = parts[4].trim();
-                results.innerHTML = answer;
-              }
-              if (parts.length >= 9) {
-                try {
-                  const metadataJson = JSON.parse(parts[8].trim());
-                  metadata.textContent = `Query: ${metadataJson.query}\nModel: ${metadataJson.model}\nDuration: ${metadataJson.duration.total}`;
-                } catch (e) {
-                  console.error("Couldn't parse metadata", e);
-                }
-              }
-              return readStream();
+      fetch(`search.php?q=${encodeURIComponent(query)}`)
+        .then(response => response.json()) // Read the response as JSON
+        .then(data => {
+          // Clear previous results
+          results.innerHTML = '';
+          
+          // Process and display images
+          if (data.images && data.images.length > 0) {
+            data.images.forEach(image => {
+              const img = document.createElement('img');
+              img.src = image.url;
+              img.alt = 'Image';
+              img.style.width = 'auto';  // Adjust width dynamically
+              img.style.flex = '1 1 auto'; // Adjust flex properties for fitting
+              results.appendChild(img);
             });
+          } else {
+            results.textContent = 'No images found.';
           }
 
-          return readStream();
+          // Process and display summary
+          if (data.summary) {
+            summary.innerHTML = `<p>${data.summary}</p>`;
+          } else {
+            summary.innerHTML = '<p>No summary available.</p>';
+          }
+
+          // Process and display metadata
+          if (data.metadata) {
+            metadata.textContent = `Query: ${data.metadata.query}\nModel: ${data.metadata.model}\nDuration: ${data.metadata.duration.total}`;
+          }
         })
         .catch(error => {
           console.error('Error:', error);
-          results.textContent = 'An error occurred while processing your query.';
+          results.textContent = `An error occurred while processing your query: ${error.message}`;
         });
     });
 
