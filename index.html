@@ -21,10 +21,9 @@
         body {
             font-family: 'VT323', 'Courier New', monospace;
             background-color: #000;
-            background-size: 150%;
             background-image: url('BG.png');
-            background-size: contain;
-            background-repeat: repeat;
+            background-size: 150px 150px; /* Adjust the size to zoom in while repeating */
+            background-repeat: repeat; /* Keep the image repeating */
             background-attachment: scroll;
             background-position: top left;
             color: #FF8C00;
@@ -34,7 +33,8 @@
             line-height: 1.6;
             min-height: 100vh;
             overflow: auto;
-        }
+             }
+
         /* Container styling */
         .container {
             position: relative;
