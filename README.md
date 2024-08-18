@@ -2,7 +2,7 @@
 
 ## Welcome to the future of search, where privacy is just a cute bedtime story! 🛌💤
 
-![image](https://github.com/user-attachments/assets/5bf51bf4-8ea1-43fd-8de0-4fac1f1a7ead)
+![image](https://github.com/user-attachments/assets/141fe866-3bbf-4a5a-8bde-601d3ae1371a)
 
 
 ### 🎭 What is Peekaboo?
