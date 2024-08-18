@@ -1,6 +1,8 @@
 # 👁️ Peekaboo: The AI Search Engine That Sees You Coming 🕵️‍♀️
 
 ## Welcome to the future of search, where privacy is just a cute bedtime story! 🛌💤
+![Screenshot_20240818-142821_Chrome](https://github.com/user-attachments/assets/8590f1ad-6874-4390-855f-be0c0b3c9fef)
+
 
 
 ### 🎭 What is Peekaboo?
