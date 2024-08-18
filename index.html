@@ -19,22 +19,22 @@
         }
         /* Body styling */
         body {
-          font-family: 'VT323', 'Courier New', monospace;
-          background-color: #000;
-          background-image: url('BG.png'); /* Update with your image URL */
-          background-size: contain; /* Adjusts the size of the image to fit the container without stretching */
-          background-repeat: repeat; /* Repeat the background image */
-          background-attachment: scroll; /* Make the background scroll with the page */
-          background-position: top left; /* Start repeating from the top left corner */
-          color: #FF8C00;
-          display: flex;
-          flex-direction: column;
-          padding: 20px;
-          line-height: 1.6;
-          min-height: 100vh;
-          overflow: auto; /* Allow full-page scrolling */
-      }
-      
+            font-family: 'VT323', 'Courier New', monospace;
+            background-color: #000;
+            background-size: 150%;
+            background-image: url('BG.png');
+            background-size: contain;
+            background-repeat: repeat;
+            background-attachment: scroll;
+            background-position: top left;
+            color: #FF8C00;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow: auto;
+        }
         /* Container styling */
         .container {
             position: relative;
@@ -124,20 +124,20 @@
             display: flex;
             overflow-x: auto;
             white-space: nowrap;
-            height: 200px; /* Set a fixed height for consistency */
+            height: 200px;
         }
         #results img {
-            flex: 0 0 200px; /* Set a fixed width for all images */
-            height: 100%; /* Ensure all images are of the same height */
-            object-fit: cover; /* Ensure images cover their containers */
+            flex: 0 0 200px;
+            height: 100%;
+            object-fit: cover;
             margin-right: 5px;
             border-radius: 8px;
-            box-shadow: 0 0 10px #ff8c004d;
+            box-shadow: 0 0 10px rgba(255, 140, 0, 0.3);
         }
         /* Summary styling */
         #summary {
-            font-size: 1.5em; /* Adjust the size as needed */
-            line-height: 1.6; /* Optional: Adjust line height for readability */
+            font-size: 1em;
+            line-height: 1.6;
             padding: 10px 0;
             white-space: normal;
         }
@@ -154,6 +154,7 @@
             color: #666;
         }
     </style>
+    <script src="config.js"></script>
 </head>
 <body>
 <div class="container">
@@ -171,54 +172,58 @@
     </footer>
 </div>
 <script>
-  function typeWriterFromJSON(jsonData, element, speed = 50) {
-    const content = jsonData.summary.choices[0].message.content;
-    const sentences = content.split('\n\n'); // Split by double newline for paragraphs
-    element.innerHTML = ''; // Clear existing content
-
-    let i = 0; // Sentence index
-    let j = 0; // Character index
-    let currentSentence = ''; // Current sentence being processed
-    let isTyping = false; // To control typing state
-
-    function type() {
-        if (i < sentences.length) {
-            if (!isTyping) {
-                currentSentence = sentences[i];
-                isTyping = true;
-            }
-
-            const char = currentSentence.charAt(j);
-            element.innerHTML += (j === 0 ? '<p>' : '') + char + (j === currentSentence.length - 1 ? '</p>' : '');
-            j++;
-
-            if (j >= currentSentence.length) {
-                j = 0;
-                i++;
-                isTyping = false;
-                setTimeout(type, speed * 2); // Shorter pause between paragraphs
+    function typeWriterFromJSON(jsonData, element, speed = 5) {
+        const content = jsonData.choices[0].message.content;
+        const sentences = content.split('\n\n');
+        element.innerHTML = '';
+    
+        let i = 0;
+        let j = 0;
+        let currentSentence = '';
+        let isTyping = false;
+    
+        function type() {
+            if (i < sentences.length) {
+                if (!isTyping) {
+                    currentSentence = sentences[i];
+                    isTyping = true;
+                    // Create a new paragraph element
+                    const p = document.createElement('p');
+                    element.appendChild(p);
+                }
+    
+                const p = element.lastElementChild;
+                const char = currentSentence.charAt(j);
+                p.innerHTML += char;
+                j++;
+    
+                if (j >= currentSentence.length) {
+                    j = 0;
+                    i++;
+                    isTyping = false;
+                    setTimeout(type, speed * 2);
+                } else {
+                    requestAnimationFrame(type);
+                }
             } else {
-                // Using requestAnimationFrame for smoother typing
-                requestAnimationFrame(() => type());
+                const images = jsonData.images;
+                if (images && images.length) {
+                    images.forEach((img, index) => {
+                        const imgElement = document.createElement('img');
+                        imgElement.src = img.url;
+                        imgElement.alt = `Image ${index + 1}`;
+                        imgElement.style.display = 'block';
+                        imgElement.style.marginTop = '10px';
+                        element.appendChild(imgElement);
+                    });
+                }
             }
-        } else {
-            // Process images after typing
-            const images = jsonData.images;
-            images.forEach((img, index) => {
-                const imgElement = document.createElement('img');
-                imgElement.src = img.url;
-                imgElement.alt = `Image ${index + 1}`;
-                imgElement.style.display = 'block'; // Ensure images are block level for proper formatting
-                imgElement.style.marginTop = '10px'; // Optional margin for spacing
-                element.appendChild(imgElement);
-            });
         }
+    
+        type();
     }
-
-    type();
-}
-
-
+    
+            
 
     document.getElementById('searchForm').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -230,11 +235,8 @@
         summary.textContent = '';
         metadata.textContent = '';
 
-        // Function to perform Google search
         function searchWithGoogle(query, numSources = 15) {
-            const GOOGLE_API_KEY = "AIzaSyAyT8kQE6p5vY_b1j10d_67if83JGk9uOU";
-            const GOOGLE_SEARCH_ENGINE_ID = "70c6bb9497972479d";
-            const url = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=${GOOGLE_SEARCH_ENGINE_ID}&q=${encodeURIComponent(query)}&num=${numSources}`;
+            const url = `https://www.googleapis.com/customsearch/v1?key=${CONFIG.GOOGLE_API_KEY}&cx=${CONFIG.GOOGLE_SEARCH_ENGINE_ID}&q=${encodeURIComponent(query)}&num=${numSources}`;
 
             return fetch(url)
                 .then(response => response.json())
@@ -249,11 +251,8 @@
                 });
         }
 
-        // Function to search images with Google API
         function searchImagesWithGoogle(query, numImages = 4) {
-            const GOOGLE_API_KEY = "AIzaSyAyT8kQE6p5vY_b1j10d_67if83JGk9uOU";
-            const GOOGLE_SEARCH_ENGINE_ID = "70c6bb9497972479d";
-            const url = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=${GOOGLE_SEARCH_ENGINE_ID}&q=${encodeURIComponent(query)}&num=${numImages}&searchType=image`;
+            const url = `https://www.googleapis.com/customsearch/v1?key=${CONFIG.GOOGLE_API_KEY}&cx=${CONFIG.GOOGLE_SEARCH_ENGINE_ID}&q=${encodeURIComponent(query)}&num=${numImages}&searchType=image`;
 
             return fetch(url)
                 .then(response => response.json())
@@ -267,14 +266,12 @@
                 });
         }
 
-        // Function to get snippets for the prompt
         function getSnippetsForPrompt(snippets) {
             return snippets.map((s, i) => `[citation:${i + 1}] ${s.snippet}`).join('\n\n');
         }
 
-        // Function to set up the prompt for getting an answer
         function setupGetAnswerPrompt(snippets, images) {
-            const startingContext = ` answer all this in an html paragraph format:
+            const startingContext = `Answer all this
 
 1. A detailed, paragraphed, comprehensive answer to the question. It must be accurate, high-quality, and expertly written in a positive, interesting, and engaging manner. The answer should be informative and in the same language as the user question. Aim for at least 300 words in your response.
 
@@ -292,9 +289,7 @@ Here are the provided citations:`;
             return `${startingContext}\n\n${getSnippetsForPrompt(snippets)}\n\n${imageContext}\n\n${finalContext}`;
         }
 
-        // Function to make a request to Groq API
         function requestGroq(query, context, maxTokens = 3000, model = "mixtral-8x7b-32768", temperature = 0.7) {
-            const GROQ_API_KEY = "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";
             const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
 
             const requestBody = {
@@ -311,17 +306,15 @@ Here are the provided citations:`;
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${GROQ_API_KEY}`,
+                    'Authorization': `Bearer ${CONFIG.GROQ_API_KEY}`,
                 },
                 body: JSON.stringify(requestBody),
             })
             .then(response => response.json());
         }
 
-        // Main execution
         Promise.all([searchWithGoogle(query), searchImagesWithGoogle(query)])
             .then(([snippets, images]) => {
-                // Display images
                 results.innerHTML = '';
                 if (images.length > 0) {
                     images.forEach(image => {
@@ -336,16 +329,14 @@ Here are the provided citations:`;
                     results.textContent = 'No images found.';
                 }
 
-                // Prepare context and make Groq API request
                 const answerPromptContext = setupGetAnswerPrompt(snippets, images);
                 return requestGroq(query, answerPromptContext);
             })
             .then(data => {
-                console.log('Raw data:', data);  // Log raw data for debugging
+                console.log('Raw data:', data);
 
-                // Process and display summary
-                summary.innerHTML = <h2>SearchInput</h2>;
-                const summaryContent = document.createElement('p');
+                summary.innerHTML = `<h2>${query}</h2>`;
+                const summaryContent = document.createElement('div');
                 summary.appendChild(summaryContent);
 
                 let content = '';
@@ -357,9 +348,8 @@ Here are the provided citations:`;
                     content = 'No summary available.';
                 }
 
-                typeWriter(content, summaryContent);
+                typeWriterFromJSON({ choices: [{ message: { content: content } }] }, summaryContent);
 
-                // Process and display metadata
                 metadata.innerHTML = '<h2>Metadata</h2>';
                 metadata.innerHTML += `<p>Query: ${query}</p>`;
                 metadata.innerHTML += `<p>Model: mixtral-8x7b-32768</p>`;
